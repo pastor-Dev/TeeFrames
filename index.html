@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Tee Frames: mobile videographer and video editor for property, food, events, church media and reels.">
+<title>Tee Frames</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout concept: a camera viewfinder (thirds grid, REC, live timecode, exposure readouts) opens a dark, quiet page. Boldness lives in the hero and the raw/graded slider; everything else stays calm. */
+:root {
+  --bg: #0b0f14;
+  --surface: #121821;
+  --line: #222b36;
+  --fg: #e8ecf0;
+  --muted: #8d99a6;
+  --accent: #86dccf;
+  --on-accent: #06211d;
+  --grid: rgba(232, 236, 240, 0.09);
+  --rec: #ff453a;
+  --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #eef1f4; --surface: #ffffff; --line: #d5dce3; --fg: #0f161d; --muted: #596674;
+    --accent: #0c6f64; --on-accent: #ffffff; --grid: rgba(15, 22, 29, 0.09); --rec: #d92d20;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #eef1f4; --surface: #ffffff; --line: #d5dce3; --fg: #0f161d; --muted: #596674;
+  --accent: #0c6f64; --on-accent: #ffffff; --grid: rgba(15, 22, 29, 0.09); --rec: #d92d20;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  background: var(--bg); z-index: 10;
+}
+a { color: inherit; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { text-wrap: balance; }
+.wrap {
+  width: 100%; max-width: 1120px; margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.mono { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.muted { color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Header */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; }
+.mark { font-family: var(--font-display); font-weight: 900; font-size: 1.6rem; letter-spacing: 0.04em; text-decoration: none; line-height: 1; }
+.mark span { color: var(--accent); }
+.nav { display: none; gap: 24px; }
+.nav a { text-decoration: none; color: var(--muted); font-size: 0.875rem; }
+.nav a:hover { color: var(--fg); }
+@media (min-width: 720px) { .nav { display: flex; } }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 10px 20px; border-radius: 2px;
+  font: 700 0.9rem var(--font-body); text-decoration: none; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent);
+}
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--fg); }
+.btn.sm { min-height: 38px; padding: 6px 14px; font-size: 0.8rem; }
+
+/* Hero viewfinder */
+.hero { padding-block: 24px 40px; }
+.vf {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 40px;
+  padding: 20px 18px; min-height: 480px;
+  background:
+    linear-gradient(to right, transparent calc(33.333% - 0.5px), var(--grid) calc(33.333% - 0.5px), var(--grid) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px)),
+    linear-gradient(to right, transparent calc(66.666% - 0.5px), var(--grid) calc(66.666% - 0.5px), var(--grid) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(33.333% - 0.5px), var(--grid) calc(33.333% - 0.5px), var(--grid) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(66.666% - 0.5px), var(--grid) calc(66.666% - 0.5px), var(--grid) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px)),
+    radial-gradient(120% 90% at 85% 10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    var(--surface);
+}
+.corner { position: absolute; width: 22px; height: 22px; border: 2px solid var(--fg); opacity: 0.85; }
+.corner.tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+.corner.tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+.corner.bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+.corner.br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+.vf-top, .vf-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
+.rec { display: inline-flex; align-items: center; gap: 8px; }
+.rec i { width: 10px; height: 10px; border-radius: 50%; background: var(--rec); animation: blink 1.6s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0.15; } }
+.tc { font-variant-numeric: tabular-nums; }
+.hero h1 {
+  font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(3.4rem, 15vw, 9rem); line-height: 0.88; letter-spacing: -0.005em;
+}
+.hero h1 em { font-style: normal; color: var(--accent); display: block; }
+.hero .lede { max-width: 46ch; margin-top: 20px; color: var(--muted); font-size: 1.05rem; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.niches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; padding: 0; list-style: none; }
+.niches li { border: 1px solid var(--line); padding: 4px 10px; border-radius: 2px; color: var(--muted); background: var(--bg); }
+
+/* Sections */
+section { padding-block: 56px; border-top: 1px solid var(--line); }
+.eyebrow { color: var(--accent); }
+h2 {
+  font-family: var(--font-display); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(2.2rem, 7vw, 3.8rem); line-height: 0.95; margin-top: 8px;
+}
+.sec-head { display: grid; gap: 12px; margin-bottom: 32px; max-width: 60ch; }
+.sec-head p { color: var(--muted); }
+
+/* Work */
+.work { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 16px; }
+.card {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between;
+  aspect-ratio: 4 / 5; padding: 16px; overflow: hidden; border-radius: 2px;
+  color: #f4f6f8; text-decoration: none; background: var(--g);
+  border: 1px solid var(--line); min-width: 0;
+}
+.card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(4, 8, 12, 0.78), transparent 55%); pointer-events: none; }
+.card > * { position: relative; z-index: 1; }
+.card .top { display: flex; justify-content: space-between; gap: 8px; }
+.play { width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid rgba(244, 246, 248, 0.8); display: grid; place-items: center; align-self: center; margin-block: auto; }
+.play::before { content: ""; border-left: 14px solid #f4f6f8; border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-left: 4px; }
+a.card:hover .play { background: rgba(244, 246, 248, 0.18); }
+.card h3 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 1.9rem; line-height: 1; }
+.card p { font-size: 0.875rem; opacity: 0.88; margin-top: 4px; }
+.card .meta { margin-top: 10px; opacity: 0.75; }
+.chip { align-self: flex-start; padding: 2px 8px; border: 1px solid rgba(244, 246, 248, 0.5); border-radius: 2px; }
+
+/* Before / after */
+.edit { display: grid; gap: 32px; }
+@media (min-width: 900px) { .edit { grid-template-columns: 1.4fr 1fr; align-items: center; } }
+.ba { position: relative; aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: 2px; background: #000; --pos: 50%; }
+.ba:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
+.layer { position: absolute; inset: 0; }
+.layer svg { display: block; width: 100%; height: 100%; }
+.layer.graded svg { filter: saturate(1.35) contrast(1.2) brightness(0.96); }
+.layer.graded::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14, 52, 92, 0.38), rgba(255, 140, 60, 0.22)); mix-blend-mode: overlay; }
+.layer.raw { clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+.layer.raw svg { filter: saturate(0.45) contrast(0.74) brightness(1.12); }
+.handle { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; background: #fff; transform: translateX(-1px); pointer-events: none; }
+.handle::after { content: "\2194"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #fff; color: #0b0f14; font-size: 1rem; }
+.tag { position: absolute; bottom: 10px; padding: 3px 8px; background: rgba(4, 8, 12, 0.7); color: #f4f6f8; border-radius: 2px; pointer-events: none; }
+.tag.l { left: 10px; } .tag.r { right: 10px; }
+.ba input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.edit ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+.edit li { display: grid; gap: 2px; padding-top: 16px; border-top: 1px solid var(--line); }
+.edit li b { font-size: 1.05rem; }
+.edit li span { color: var(--muted); font-size: 0.95rem; }
+.note { margin-top: 12px; color: var(--muted); }
+
+/* Services */
+.rates { display: grid; border-top: 1px solid var(--line); }
+.rate { display: grid; gap: 8px 24px; padding-block: 24px; border-bottom: 1px solid var(--line); }
+@media (min-width: 760px) { .rate { grid-template-columns: 1.1fr 1.6fr auto; align-items: baseline; } }
+.rate h3 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 1.9rem; line-height: 1; }
+.rate p { color: var(--muted); min-width: 0; }
+.price { font-family: var(--font-mono); font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.price small { color: var(--muted); font-size: 0.75rem; display: block; }
+
+/* Process */
+.steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: grid; gap: 0; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 56px 1fr; gap: 4px 12px; padding-block: 20px; border-bottom: 1px solid var(--line); min-width: 0; }
+.steps li::before { content: "T" counter(s); grid-row: span 2; font-family: var(--font-mono); color: var(--accent); font-size: 0.85rem; padding-top: 4px; }
+.steps b { font-size: 1.1rem; }
+.steps span { color: var(--muted); }
+@media (min-width: 900px) {
+  .steps { grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .steps li { grid-template-columns: 1fr; border-bottom: 0; border-top: 1px solid var(--line); }
+  .steps li::before { grid-row: auto; }
+}
+
+/* Kit + about */
+.split { display: grid; gap: 40px; }
+@media (min-width: 900px) { .split { grid-template-columns: 1fr 1fr; } }
+.kit { display: grid; margin: 0; }
+.kit div { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding-block: 14px; border-bottom: 1px solid var(--line); }
+.kit dt { color: var(--accent); padding-top: 3px; }
+.kit dd { margin: 0; min-width: 0; }
+.about p { color: var(--muted); max-width: 54ch; }
+.about p + p { margin-top: 14px; }
+.about p:first-of-type { color: var(--fg); font-size: 1.15rem; }
+
+/* Launch offer */
+.offer { display: grid; gap: 20px; padding: 24px; border: 1px solid var(--accent); border-radius: 2px; background: var(--surface); }
+@media (min-width: 760px) { .offer { grid-template-columns: 1fr auto; align-items: center; padding: 32px; } }
+.offer h3 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 2rem; line-height: 1; }
+.offer p { color: var(--muted); margin-top: 8px; max-width: 56ch; }
+
+/* Contact */
+.contact { display: grid; border-top: 1px solid var(--line); margin-top: 8px; }
+.row { display: grid; grid-template-columns: 100px 1fr auto; gap: 8px 14px; align-items: center; padding-block: 14px; border-bottom: 1px solid var(--line); }
+.row .val { min-width: 0; overflow-wrap: anywhere; user-select: all; }
+.row .val.empty { color: var(--muted); user-select: none; }
+.row .acts { display: flex; gap: 8px; }
+@media (max-width: 520px) {
+  .row { grid-template-columns: 1fr auto; }
+  .row .lab { grid-column: 1 / -1; }
+}
+footer { padding-block: 32px 48px; border-top: 1px solid var(--line); color: var(--muted); }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .rec i { animation: none; }
+}
+</style>
+
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6f9ec8"/><stop offset="0.6" stop-color="#e7c9a2"/><stop offset="1" stop-color="#f0d9b8"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff4d2"/><stop offset="0.35" stop-color="#fbe2a8" stop-opacity="0.8"/><stop offset="1" stop-color="#f7cf8a" stop-opacity="0"/>
+    </radialGradient>
+    <symbol id="scene" viewBox="0 0 800 450">
+      <rect width="800" height="450" fill="url(#sky)"/>
+      <circle cx="600" cy="250" r="150" fill="url(#sun)"/>
+      <path d="M0 300 Q140 235 290 290 T560 275 T800 290 V450 H0Z" fill="#53707a"/>
+      <path d="M0 345 Q200 300 400 335 T800 325 V450 H0Z" fill="#35523f"/>
+      <rect x="0" y="385" width="800" height="65" fill="#2a3f31"/>
+      <rect x="170" y="255" width="250" height="135" fill="#ddd5c6"/>
+      <polygon points="150,258 295,185 440,258" fill="#6e4b3b"/>
+      <rect x="205" y="290" width="46" height="58" fill="#f5d489"/>
+      <rect x="338" y="290" width="46" height="58" fill="#f5d489"/>
+      <rect x="272" y="318" width="52" height="72" fill="#4a362c"/>
+      <rect x="460" y="330" width="14" height="60" fill="#3b2c22"/>
+      <circle cx="467" cy="318" r="34" fill="#2d4a38"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="mark" href="#top">TEE<span>.</span>FRAMES</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#work">Work</a><a href="#edit">Edit</a><a href="#services">Services</a><a href="#about">About</a>
+    </nav>
+    <a class="btn sm" href="#contact">Book a shoot</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div class="vf">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <div class="vf-top mono">
+          <span class="rec"><i></i> REC</span>
+          <span class="tc" id="tc">00:00:00:00</span>
+        </div>
+        <div>
+          <h1>Shot on a phone.<em>Cut like cinema.</em></h1>
+          <p class="lede">I'm Tee, a mobile videographer and video editor. I shoot and finish short films, reels and tours that make small brands look like big ones.</p>
+          <ul class="niches mono">
+            <li>Property</li><li>Food</li><li>Events</li><li>Church media</li><li>Reels</li>
+          </ul>
+          <div class="cta">
+            <a class="btn" id="reel-link" href="#work">Watch the showreel</a>
+            <a class="btn ghost" href="#contact">Book a shoot</a>
+          </div>
+        </div>
+        <div class="vf-bottom mono muted">
+          <span>4K</span><span>30 fps</span><span>1/60</span><span>ISO 100</span><span>24 mm</span><span>AE/AF lock</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="work">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="mono eyebrow">Selected work</span>
+        <h2>Six scenes, six kinds of client</h2>
+        <p>Each frame links to the finished piece. Vertical for reels and Shorts, horizontal for tours and event films.</p>
+      </div>
+      <div class="work" id="work-grid"></div>
+    </div>
+  </section>
+
+  <section id="edit">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="mono eyebrow">The edit</span>
+        <h2>Raw footage in, finished film out</h2>
+        <p>Phone footage looks flat until it is graded and mixed. Drag the line to see what a colour grade does to the same shot.</p>
+      </div>
+      <div class="edit">
+        <div>
+          <div class="ba" id="ba">
+            <div class="layer graded"><svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Graded frame of a house at dusk"><use href="#scene" width="800" height="450"/></svg></div>
+            <div class="layer raw"><svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#scene" width="800" height="450"/></svg></div>
+            <div class="handle"></div>
+            <span class="tag l mono">Raw</span><span class="tag r mono">Graded</span>
+            <input type="range" id="ba-range" min="0" max="100" value="50" aria-label="Compare raw footage with the graded edit">
+          </div>
+          <p class="note mono">Demo frame. Your own raw and graded clips replace it.</p>
+        </div>
+        <ul>
+          <li><b>Colour grade</b><span>Exposure, contrast and skin tones matched from shot to shot, so the cut feels like one camera.</span></li>
+          <li><b>Sound design</b><span>Clean voice, room tone removed, music ducked under speech and cut on the beat.</span></li>
+          <li><b>Captions and motion text</b><span>Burned-in captions for muted scrolling, titles that match the brand colours.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="mono eyebrow">Services and rates</span>
+        <h2>Pick a package, get a quote in a day</h2>
+        <p>Starting rates in naira. The final quote follows a short brief about location, length and platform.</p>
+      </div>
+      <div class="rates">
+        <div class="rate">
+          <h3>Single reel</h3>
+          <p>One vertical video up to 60 seconds. Shot on location, edited with music, captions and a colour grade. Two rounds of revisions.</p>
+          <div class="price">from ₦20,000<small>3 day delivery</small></div>
+        </div>
+        <div class="rate">
+          <h3>Content month</h3>
+          <p>Five reels shot in one session and released across the month. Built around your brand colours, with a shared content plan.</p>
+          <div class="price">from ₦85,000<small>First reel in 4 days</small></div>
+        </div>
+        <div class="rate">
+          <h3>Event coverage</h3>
+          <p>Half day of shooting for a wedding, launch or church programme. A highlight film plus vertical clips for social media.</p>
+          <div class="price">from ₦60,000<small>Highlight in 7 days</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="mono eyebrow">How a project runs</span>
+        <h2>From brief to delivery</h2>
+      </div>
+      <ol class="steps">
+        <li><b>Brief</b><span>A short chat about the goal, the platform and the deadline.</span></li>
+        <li><b>Shoot</b><span>One focused session with a shot list agreed beforehand.</span></li>
+        <li><b>Edit</b><span>Cut, grade, sound and captions. You get a private preview link.</span></li>
+        <li><b>Revisions</b><span>Two rounds of changes are included in every package.</span></li>
+        <li><b>Delivery</b><span>Final files in the sizes you need, vertical and horizontal.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="wrap split">
+      <div class="about">
+        <span class="mono eyebrow">About</span>
+        <h2>Hi, I'm Tee</h2>
+        <p style="margin-top:20px">I make short videos that look expensive without the expensive crew.</p>
+        <p>I shoot on a phone because it gets me closer, moves faster and never makes your guests nervous. Then I edit every frame myself, so the finished film has one point of view from start to end.</p>
+        <p>Based in Nigeria and available for shoots here. Remote editing for clients anywhere.</p>
+      </div>
+      <div>
+        <span class="mono eyebrow">How I shoot</span>
+        <dl class="kit" style="margin-top:20px">
+          <div><dt class="mono">Camera</dt><dd>Phone at 4K, 24 or 30 fps, exposure and focus locked for steady shots.</dd></div>
+          <div><dt class="mono">Movement</dt><dd>Gimbal for smooth walk-throughs and tracking shots.</dd></div>
+          <div><dt class="mono">Sound</dt><dd>Lavalier mic for clean voice. Audio gets as much care as picture.</dd></div>
+          <div><dt class="mono">Light</dt><dd>Small LED panel and natural light, planned around the time of day.</dd></div>
+          <div><dt class="mono">Edit</dt><dd>Colour, sound and motion text finished in a full editing app.</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section id="offer">
+    <div class="wrap">
+      <div class="offer">
+        <div>
+          <span class="mono eyebrow">Launch offer</span>
+          <h3 style="margin-top:8px">First five clients get a better rate</h3>
+          <p>I'm building my client list, so the first five projects are discounted. In return I ask for a short written testimonial once you've seen the film. Terms are agreed before we shoot.</p>
+        </div>
+        <a class="btn" href="#contact">Claim a launch slot</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="mono eyebrow">Contact</span>
+        <h2>Tell me what you're making</h2>
+        <p>Message me with the type of video, the date and where it will be posted. I reply the same day.</p>
+      </div>
+      <div class="contact" id="contact-list"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Tee Frames</span>
+    <span class="mono">Mobile film and edit</span>
+  </div>
+</footer>
+
+<script>
+/* Edit these values to personalise the page. Leave a value empty and it shows as "To be added". */
+var P = {
+  showreel: "",
+  contacts: [
+    { label: "WhatsApp", value: "", href: "" },
+    { label: "Email", value: "", href: "" },
+    { label: "Instagram", value: "", href: "" },
+    { label: "TikTok", value: "", href: "" },
+    { label: "YouTube", value: "", href: "" }
+  ],
+  work: [
+    { cat: "Property tours", line: "Walk-throughs that sell the lifestyle, not just the rooms.", fmt: "16:9 · 4K · 30 fps", g: "linear-gradient(155deg,#2c5a73,#0d1b26 70%)", url: "" },
+    { cat: "Food and restaurants", line: "Steam, sizzle and close-ups cut tight for hungry scrollers.", fmt: "9:16 · 4K · 30 fps", g: "linear-gradient(155deg,#7a3b22,#1c0f0a 70%)", url: "" },
+    { cat: "Events and weddings", line: "A highlight film that feels like the day did.", fmt: "16:9 · 4K · 24 fps", g: "linear-gradient(155deg,#5b3a6b,#150d1c 70%)", url: "" },
+    { cat: "Church and worship", line: "Clean, reverent edits for services, clips and announcements.", fmt: "16:9 · 4K · 24 fps", g: "linear-gradient(155deg,#3f5a7a,#0e141d 70%)", url: "" },
+    { cat: "Short-form reels", line: "Fast hooks, beat-matched cuts, captions built in.", fmt: "9:16 · 4K · 30 fps", g: "linear-gradient(155deg,#1f6b60,#0a1c19 70%)", url: "" },
+    { cat: "Product ads", line: "Small-brand products lit and moved like a campaign.", fmt: "9:16 · 4K · 30 fps", g: "linear-gradient(155deg,#6d6a2a,#17160a 70%)", url: "" }
+  ]
+};
+
+(function () {
+  /* Showreel link */
+  var reel = document.getElementById("reel-link");
+  if (P.showreel) { reel.href = P.showreel; reel.target = "_blank"; reel.rel = "noopener"; }
+
+  /* Work cards */
+  var grid = document.getElementById("work-grid");
+  P.work.forEach(function (w, i) {
+    var el = document.createElement(w.url ? "a" : "div");
+    el.className = "card";
+    el.style.setProperty("--g", w.g);
+    if (w.url) { el.href = w.url; el.target = "_blank"; el.rel = "noopener"; }
+    var top = document.createElement("div"); top.className = "top mono";
+    var sc = document.createElement("span"); sc.textContent = "SC " + String(i + 1).padStart(2, "0");
+    var chip = document.createElement("span"); chip.className = "chip"; chip.textContent = w.url ? "Watch" : "Sample frame";
+    top.appendChild(sc); top.appendChild(chip);
+    var play = document.createElement("div"); play.className = "play"; play.setAttribute("aria-hidden", "true");
+    var body = document.createElement("div");
+    var h = document.createElement("h3"); h.textContent = w.cat;
+    var p = document.createElement("p"); p.textContent = w.line;
+    var m = document.createElement("div"); m.className = "meta mono"; m.textContent = w.fmt;
+    body.appendChild(h); body.appendChild(p); body.appendChild(m);
+    el.appendChild(top); el.appendChild(play); el.appendChild(body);
+    grid.appendChild(el);
+  });
+
+  /* Contact rows */
+  var list = document.getElementById("contact-list");
+  function flash(btn, txt) { var old = btn.textContent; btn.textContent = txt; setTimeout(function () { btn.textContent = old; }, 1600); }
+  P.contacts.forEach(function (c) {
+    var row = document.createElement("div"); row.className = "row";
+    var lab = document.createElement("span"); lab.className = "lab mono muted"; lab.textContent = c.label;
+    var val = document.createElement("span"); val.className = "val";
+    var acts = document.createElement("span"); acts.className = "acts";
+    if (c.value) {
+      val.textContent = c.value;
+      var copy = document.createElement("button"); copy.type = "button"; copy.className = "btn ghost sm"; copy.textContent = "Copy";
+      copy.addEventListener("click", function () {
+        function pick() {
+          var r = document.createRange(); r.selectNodeContents(val);
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); flash(copy, "Selected");
+        }
+        try { navigator.clipboard.writeText(c.value).then(function () { flash(copy, "Copied"); }, pick); } catch (e) { pick(); }
+      });
+      acts.appendChild(copy);
+      if (c.href) {
+        var open = document.createElement("a"); open.className = "btn sm"; open.textContent = "Open";
+        open.href = c.href; open.target = "_blank"; open.rel = "noopener"; acts.appendChild(open);
+      }
+    } else {
+      val.textContent = "To be added"; val.classList.add("empty");
+    }
+    row.appendChild(lab); row.appendChild(val); row.appendChild(acts);
+    list.appendChild(row);
+  });
+
+  /* Before / after slider */
+  var ba = document.getElementById("ba"), range = document.getElementById("ba-range");
+  range.addEventListener("input", function () { ba.style.setProperty("--pos", range.value + "%"); });
+
+  /* Viewfinder timecode */
+  var tc = document.getElementById("tc");
+  var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function pad(n) { return String(n).padStart(2, "0"); }
+  if (!still) {
+    var t0 = Date.now();
+    setInterval(function () {
+      var ms = Date.now() - t0, f = Math.floor((ms % 1000) / 33.333), s = Math.floor(ms / 1000);
+      tc.textContent = pad(Math.floor(s / 3600)) + ":" + pad(Math.floor(s / 60) % 60) + ":" + pad(s % 60) + ":" + pad(f);
+    }, 100);
+  }
+})();
+</script>
+</body>
+</html>
